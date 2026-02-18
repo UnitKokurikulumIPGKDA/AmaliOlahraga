@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXON // HP3 FILTERED SYSTEM</title>
+    <title>AXON // HP3 A4 PRECISION PRINT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --accent: #00f2ff; --bg: #0a0c10; }
@@ -13,29 +13,43 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 26px; width: 26px; border-radius: 50%; background: var(--accent); border: 3px solid white; cursor: pointer; box-shadow: 0 0 15px var(--accent); }
         .hidden-section { display: none; }
         
+        /* CSS KAWALAN MARGIN A4 (2 ORANG SETIAP PAGE) */
         @media print {
+            @page { size: A4; margin: 10mm; }
             .no-print { display: none !important; }
             .print-only { display: block !important; color: black; background: white; padding: 0; margin: 0; }
-            body { background: white !important; }
-            .report-card { 
-                height: 297mm; 
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            
+            .report-page {
+                width: 190mm; /* Lebar A4 minus margin */
+                height: 277mm; /* Tinggi A4 minus margin */
                 display: flex;
                 flex-direction: column;
                 page-break-after: always;
-            }
-            .student-row {
-                height: 48%; 
-                border: 2px solid #000;
-                padding: 30px; 
-                margin-bottom: 2%;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
                 box-sizing: border-box;
             }
-            table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 14px; margin: 20px 0; }
-            th, td { border: 1px solid black; padding: 10px; text-align: center; color: black !important; }
-            .student-img { width: 100px; height: 130px; object-fit: cover; border: 1px solid #000; background: #eee; }
+            .student-box {
+                height: 135mm; /* Tepat separuh page A4 */
+                border: 2px solid black;
+                padding: 20px;
+                margin-bottom: 5mm;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                overflow: hidden;
+            }
+            table { width: 100%; border-collapse: collapse; border: 1.5px solid black; font-size: 13px; }
+            th, td { border: 1.5px solid black; padding: 8px; text-align: center; color: black !important; font-weight: bold; }
+            .student-img { width: 90px; height: 110px; object-fit: cover; border: 2px solid black; background: #f0f0f0; }
+            .ai-comment-box { 
+                padding: 10px; 
+                border-left: 5px solid #00f2ff; 
+                background: #f9f9f9; 
+                font-size: 11px; 
+                min-height: 50px; 
+                color: black;
+            }
         }
         .print-only { display: none; }
     </style>
@@ -44,7 +58,7 @@
 
     <div class="max-w-6xl mx-auto no-print">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 text-center">
-            <h1 class="text-3xl font-bold text-white uppercase italic tracking-tighter">PENILIAN AMALI MPU3411 <span class="text-cyan-400">// HP3</span></h1>
+            <h1 class="text-3xl font-bold text-white uppercase italic tracking-tighter">AXON <span class="text-cyan-400">// HP3</span></h1>
             <div class="flex gap-2 p-1 glass-card bg-white/5">
                 <button onclick="switchRole('Penilai 1')" id="roleBtn1" class="px-6 py-2 rounded-xl text-xs font-bold bg-cyan-500 text-black">P1</button>
                 <button onclick="switchRole('Penilai 2')" id="roleBtn2" class="px-6 py-2 rounded-xl text-xs font-bold text-white/50">P2</button>
@@ -54,7 +68,7 @@
 
         <div id="penilaiView" class="space-y-6">
             <select id="penilaiClassFilter" onchange="handleClass(this.value)" class="w-full bg-slate-900 border border-white/10 rounded-xl p-4 text-white font-bold outline-none">
-                <option value="">-- Pilih Kelas (Penilai) --</option>
+                <option value="">-- Pilih Kelas --</option>
             </select>
             <div id="studentList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -62,19 +76,16 @@
         <div id="adminView" class="hidden-section glass-card p-6 overflow-x-auto text-white">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="text-xl font-bold uppercase text-cyan-400">Dashboard Rumusan</h2>
-                
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <span class="text-xs font-bold uppercase text-white/40">Tapis:</span>
-                    <select id="adminClassFilter" onchange="renderAdminTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-xs font-bold text-white outline-none focus:border-cyan-400">
+                <div class="flex items-center gap-3">
+                    <select id="adminFilter" onchange="renderAdminTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-xs font-bold text-white">
                         <option value="">-- Semua Kelas --</option>
                     </select>
-                    <button id="btnPrint" onclick="preparePrintReport()" class="bg-cyan-500 px-4 py-2 rounded-lg text-xs font-bold text-black hover:bg-cyan-400 transition-all">Cetak PDF</button>
+                    <button id="btnPrint" onclick="preparePrintReport()" class="bg-cyan-500 px-6 py-2 rounded-lg text-xs font-bold text-black hover:bg-cyan-400 transition-all">Cetak PDF (2/Page)</button>
                 </div>
             </div>
-            
             <table style="border:none;" class="w-full text-left text-[11px] text-white">
                 <thead class="border-b border-white/10 text-white/40 uppercase">
-                    <tr><th style="border:none;">Atlet</th><th style="border:none;">P1 Avg</th><th style="border:none;">P2 Avg</th><th style="border:none;">Proses AI</th><th style="border:none;" class="text-right">Gred</th></tr>
+                    <tr><th style="border:none;">Atlet</th><th style="border:none;">P1 Avg</th><th style="border:none;">P2 Avg</th><th style="border:none;">Jana AI</th><th style="border:none;" class="text-right">Gred</th></tr>
                 </thead>
                 <tbody id="adminTableBody" class="divide-y divide-white/5"></tbody>
             </table>
@@ -91,14 +102,14 @@
                 <div class="bg-white/5 p-6 rounded-[20px] border border-white/10">
                     <div class="flex justify-between mb-2 uppercase text-[10px] font-bold text-white/40"><span>1. Lari Pecut</span><span id="valPecut" class="text-4xl text-cyan-400 tabular-nums">0.0</span></div>
                     <input type="range" id="sliderPecut" min="0" max="25" step="0.1" value="0" oninput="updateUI()" class="w-full">
-                    <div id="detPecut" class="mt-4 space-y-2 text-[8px] uppercase"></div>
+                    <div id="detPecut" class="mt-4 space-y-1 text-[8px] uppercase"></div>
                 </div>
                 <div class="bg-white/5 p-6 rounded-[20px] border border-white/10">
                     <div class="flex justify-between mb-2 uppercase text-[10px] font-bold text-white/40"><span>2. Lontar Peluru</span><span id="valLontar" class="text-4xl text-purple-400 tabular-nums">0.0</span></div>
                     <input type="range" id="sliderLontar" min="0" max="25" step="0.1" value="0" oninput="updateUI()" class="w-full">
-                    <div id="detLontar" class="mt-4 space-y-2 text-[8px] uppercase"></div>
+                    <div id="detLontar" class="mt-4 space-y-1 text-[8px] uppercase"></div>
                 </div>
-                <button id="btnSave" onclick="saveData()" class="w-full py-5 rounded-2xl bg-cyan-500 text-black font-bold uppercase text-xs tracking-widest active:scale-95 transition-all">Simpan Markah Live</button>
+                <button id="btnSave" onclick="saveData()" class="w-full py-5 rounded-2xl bg-cyan-500 text-black font-bold uppercase text-xs shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">Simpan Markah Live</button>
             </div>
         </div>
     </div>
@@ -107,6 +118,7 @@
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzVzaPdACxnvKJDRG5cqKDZBhLu6V8z3g3N4MT55scDGIAgU-r3ekjMAt_Zj4x8O75lBg/exec";
+
         let students = [], liveMarks = {}, selectedClass = "", currentRole = "Penilai 1", activeId = null;
 
         const skemaPecut = [{n:"Penamat (MUDAH)", l:12, c:"text-emerald-400"}, {n:"Permulaan (SEDERHANA)", l:8, c:"text-amber-400"}, {n:"Teknik Larian (SUKAR)", l:5, c:"text-red-400"}];
@@ -118,27 +130,19 @@
                 const data = await res.json();
                 students = data.students; liveMarks = data.marks;
                 initFilters(); renderView();
-            } catch (e) { console.error("Ralat API"); }
+            } catch (e) { console.error("API Fetch Fail"); }
         }
 
         function initFilters() {
             const classes = [...new Set(students.map(s => s.class))].sort();
-            const pFilter = document.getElementById('penilaiClassFilter');
-            const aFilter = document.getElementById('adminClassFilter');
-            
-            // Simpan pilihan filter sebelum ni
-            const prevAValue = aFilter.value;
-            
-            pFilter.innerHTML = '<option value="">-- Pilih Kelas (Penilai) --</option>';
-            aFilter.innerHTML = '<option value="">-- Semua Kelas --</option>';
-            
+            const pF = document.getElementById('penilaiClassFilter');
+            const aF = document.getElementById('adminFilter');
+            pF.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            aF.innerHTML = '<option value="">-- Semua Kelas --</option>';
             classes.forEach(c => {
-                pFilter.innerHTML += `<option value="${c}">${c}</option>`;
-                aFilter.innerHTML += `<option value="${c}">${c}</option>`;
+                pF.innerHTML += `<option value="${c}">${c}</option>`;
+                aF.innerHTML += `<option value="${c}">${c}</option>`;
             });
-            
-            pFilter.value = selectedClass;
-            aFilter.value = prevAValue;
         }
 
         window.handleClass = (v) => { selectedClass = v; renderView(); }
@@ -175,30 +179,24 @@
             const avgP = ((parseFloat(m['Penilai 1']?.pecut||0) + parseFloat(m['Penilai 2']?.pecut||0)) / 2).toFixed(2);
             const avgL = ((parseFloat(m['Penilai 1']?.lontar||0) + parseFloat(m['Penilai 2']?.lontar||0)) / 2).toFixed(2);
             const btn = document.querySelector(`button[data-id="${id}"]`);
-            btn.innerText = "Wait..."; btn.disabled = true;
+            btn.innerText = "..."; btn.disabled = true;
             try {
                 await fetch(scriptURL, { method: 'POST', body: JSON.stringify({ type: "JANA_AI", id: id, nama: s.name, finalPecut: avgP, finalLontar: avgL }) });
-                alert("AI Success!"); fetchMarks();
-            } catch (e) { alert("Error AI."); btn.disabled = false; btn.innerText = "✨ JANA AI"; }
+                fetchMarks();
+            } catch (e) { alert("Fail AI"); btn.disabled = false; btn.innerText = "✨"; }
         }
 
         window.preparePrintReport = async () => {
             const btn = document.getElementById('btnPrint');
-            const adminFilter = document.getElementById('adminClassFilter').value;
-            btn.innerText = "Loading..."; btn.disabled = true;
+            const adminClass = document.getElementById('adminFilter').value;
+            btn.innerText = "Memproses Imej..."; btn.disabled = true;
 
             const container = document.getElementById('printReport');
-            const filtered = students.filter(s => !adminFilter || s.class === adminFilter);
+            const filtered = students.filter(s => !adminClass || s.class === adminClass);
             let html = "";
 
-            if (filtered.length === 0) {
-                alert("Tiada pelajar dalam kelas ini untuk dicetak.");
-                btn.disabled = false; btn.innerText = "Cetak PDF";
-                return;
-            }
-
             for (let i = 0; i < filtered.length; i += 2) {
-                html += `<div class="report-card">`; 
+                html += `<div class="report-page">`;
                 for (let j = i; j < i + 2 && j < filtered.length; j++) {
                     const s = filtered[j];
                     const m = liveMarks[s.id] || {};
@@ -206,38 +204,37 @@
                     const avgL = ((parseFloat(m['Penilai 1']?.lontar||0) + parseFloat(m['Penilai 2']?.lontar||0)) / 2).toFixed(2);
                     
                     html += `
-                    <div class="student-row">
+                    <div class="student-box">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <h3 style="margin:0; font-size:18px; text-decoration:underline; font-weight:bold;">LAPORAN PENTAKSIRAN HP3</h3>
+                                <h3 style="margin:0; font-size:18px; text-decoration:underline; font-weight:bold;">LAPORAN PENTAKSIRAN AMALI HP3</h3>
                                 <p style="margin:10px 0; font-size:14px;"><b>ATLET:</b> ${s.name}<br><b>KELAS:</b> ${s.class} | <b>ID:</b> ${s.id}</p>
                             </div>
-                            <img src="${s.image}" class="student-img" onerror="this.src='https://via.placeholder.com/100x130?text=Imej+Pelajar'">
+                            <img src="${s.image}" class="student-img" crossorigin="anonymous" onerror="this.src='https://via.placeholder.com/100x120?text=Tiada+Imej'">
                         </div>
                         <table>
                             <tr style="background:#eee"><th>ACARA OLAHRAGA</th><th>PENILAI 1</th><th>PENILAI 2</th><th>PURATA AKHIR</th></tr>
                             <tr><td>LARI PECUT (25%)</td><td>${m['Penilai 1']?.pecut||0}</td><td>${m['Penilai 2']?.pecut||0}</td><td><b>${avgP}</b></td></tr>
                             <tr><td>LONTAR PELURU (25%)</td><td>${m['Penilai 1']?.lontar||0}</td><td>${m['Penilai 2']?.lontar||0}</td><td><b>${avgL}</b></td></tr>
                         </table>
-                        <div style="padding:15px; border-left:6px solid #00f2ff; background:#f9f9f9; font-size:12px;">
+                        <div class="ai-comment-box">
                             <b>RUMUSAN PRESTASI (AI):</b><br>
-                            <i>${m.aiReport || "Belum dijana."}</i>
+                            <i>${m.aiReport || "Rumusan belum dijana. Sila klik butang Jana AI di dashboard."}</i>
                         </div>
                     </div>`;
                 }
-                html += `</div>`; 
+                html += `</div>`;
             }
-
             container.innerHTML = html;
+            
             const images = container.getElementsByTagName('img');
             let loaded = 0;
             if (images.length === 0) { window.print(); btn.innerText = "Cetak PDF"; btn.disabled = false; return; }
-
             for (let img of images) {
                 img.onload = img.onerror = () => {
                     loaded++;
                     if (loaded === images.length) {
-                        setTimeout(() => { window.print(); btn.innerText = "Cetak PDF"; btn.disabled = false; }, 500);
+                        setTimeout(() => { window.print(); btn.innerText = "Cetak PDF (2/Page)"; btn.disabled = false; }, 800);
                     }
                 };
             }
@@ -266,18 +263,17 @@
 
         function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
-            const adminFilter = document.getElementById('adminClassFilter').value;
-            const filtered = students.filter(s => !adminFilter || s.class === adminFilter);
-            
+            const adminClass = document.getElementById('adminFilter').value;
+            const filtered = students.filter(s => !adminClass || s.class === adminClass);
             tbody.innerHTML = filtered.map(s => {
                 const m = liveMarks[s.id] || {};
-                const p1A = ((parseFloat(m['Penilai 1']?.pecut||0) + parseFloat(m['Penilai 1']?.lontar||0))/2);
-                const p2A = ((parseFloat(m['Penilai 2']?.pecut||0) + parseFloat(m['Penilai 2']?.lontar||0))/2);
+                const p1A = (parseFloat(m['Penilai 1']?.pecut||0) + parseFloat(m['Penilai 1']?.lontar||0))/2;
+                const p2A = (parseFloat(m['Penilai 2']?.pecut||0) + parseFloat(m['Penilai 2']?.lontar||0))/2;
                 return `<tr>
                     <td style="border:none;" class="p-4 font-bold text-white uppercase italic">${s.name}</td>
                     <td style="border:none;" class="p-4 text-center text-white">${p1A.toFixed(1)}</td>
                     <td style="border:none;" class="p-4 text-center text-white">${p2A.toFixed(1)}</td>
-                    <td style="border:none;" class="p-4 text-center"><button data-id="${s.id}" onclick="generateFinalAI('${s.id}')" class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg border border-cyan-400/20 text-[9px] font-bold italic">✨ JANA AI</button></td>
+                    <td style="border:none;" class="p-4 text-center"><button data-id="${s.id}" onclick="generateFinalAI('${s.id}')" class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg border border-cyan-400/20 text-[9px] font-bold">✨ JANA AI</button></td>
                     <td style="border:none;" class="p-4 text-right font-bold uppercase italic" style="color:${getCategory((p1A+p2A)).color}">${getCategory((p1A+p2A)).label}</td>
                 </tr>`;
             }).join('');
@@ -285,7 +281,7 @@
 
         function renderStudentList() {
             const container = document.getElementById('studentList');
-            if (!selectedClass) { container.innerHTML = '<div class="col-span-full text-center text-white/20 p-20 uppercase font-bold tracking-widest italic">Sila Pilih Kelas Dahulu</div>'; return; }
+            if (!selectedClass) { container.innerHTML = ""; return; }
             const filtered = students.filter(s => s.class === selectedClass);
             container.innerHTML = filtered.map(s => {
                 const hasMark = liveMarks[s.id] && liveMarks[s.id][currentRole] && (liveMarks[s.id][currentRole].pecut > 0 || liveMarks[s.id][currentRole].lontar > 0);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXON // HP3 AI TOTAL SYSTEM</title>
+    <title>MPU3411 // HP3 AI TOTAL SYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -57,7 +57,7 @@
         <!-- VIEW PENILAI -->
         <div id="penilaiView" class="hidden-section space-y-6">
             <select id="penilaiClassFilter" onchange="handleClass(this.value)" class="w-full bg-black border border-white/10 rounded-xl p-4 text-cyan-400 font-bold outline-none uppercase italic">
-                <option value="">-- PILIH KELAS SEKTOR --</option>
+                <option value="">-- PILIH KELAS ANDA --</option>
             </select>
             <div id="studentList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -81,11 +81,11 @@
                         <thead class="border-b border-white/10 text-white/40 font-bold italic uppercase">
                             <tr>
                                 <th class="p-4">Nama Pelajar</th>
-                                <th class="text-center">Avg Larian</th>
-                                <th class="text-center">Avg Lontar</th>
+                                <th class="text-center">Purata Larian</th>
+                                <th class="text-center">Purata Lontaran</th>
                                 <th class="text-center bg-cyan-900/30 text-cyan-400">JUMLAH HP3 (50)</th>
-                                <th class="text-center">AI Analysis</th>
-                                <th class="text-right">Tahap</th>
+                                <th class="text-center">Rumusan Penilai</th>
+                                <th class="text-right">Tahap Pencapaian</th>
                             </tr>
                         </thead>
                         <tbody id="adminTableBody" class="divide-y divide-white/5"></tbody>

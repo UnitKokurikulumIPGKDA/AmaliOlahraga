@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MPU3411 // HP3 AI TOTAL SYSTEM</title>
+    <title>AXON // HP3 AI TOTAL SYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -15,24 +15,29 @@
         .smart-input:focus { box-shadow: 0 0 20px var(--accent); background: black; }
         .hidden-section { display: none; }
         
-        /* Rubrik Design - Matching Image 4fc9c9 */
+        /* Rubrik Design */
         .rubrik-tab.active { background: var(--accent); color: black; }
         .rubrik-tab.lontar-active { background: #a855f7; color: white; }
         .cat-box { border-radius: 6px; padding: 12px 5px; font-size: 10px; font-weight: bold; text-align: center; border-width: 2px; text-transform: uppercase; }
+
+        /* Checklist Styles */
+        .check-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .check-item:hover { background: rgba(255,255,255,0.1); }
+        .check-item.active { border-color: var(--accent); background: rgba(0, 242, 255, 0.1); }
+        .check-mark { width: 20px; height: 20px; border: 2px solid var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .check-item.active .check-mark { background: var(--accent); color: black; }
+        .check-item.active .check-mark::after { content: '✓'; font-weight: bold; }
 
         @media print {
             @page { size: A4; margin: 0; }
             .no-print { display: none !important; }
             .print-only { display: block !important; color: black !important; background: white !important; width: 210mm; }
-            
-            /* GAYA SLIP PDF (2 PER PAGE) */
             .report-page { width: 210mm; height: 297mm; padding: 10mm; page-break-after: always; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
             .student-row-pdf { height: 138mm; border: 2.5px solid #000; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; position: relative; box-sizing: border-box; background: white; }
-            table { width: 100%; border-collapse: collapse; border: 1.5px solid black; margin: 5px 0; }
-            th, td { border: 1.5px solid black; padding: 6px; text-align: center; color: black !important; font-size: 11px; }
+            table { width: 100%; border-collapse: collapse; border: 1.5px solid black; margin: 10px 0; }
+            th, td { border: 1.5px solid black; padding: 6px; text-align: center; color: black !important; font-size: 10px; }
             .student-img-pdf { width: 85px; height: 105px; object-fit: cover; border: 2px solid #000; background: #f0f0f0; }
 
-            /* GAYA BORANG MANUAL 3 KOLUM */
             .borang-container { padding: 15mm; background: white; color: black; min-height: 100vh; box-sizing: border-box; }
             .grid-borang { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
             .petak-pelajar { display: flex; border: 1.5px solid black; height: 55px; align-items: center; box-sizing: border-box; }
@@ -54,19 +59,17 @@
             </div>
         </header>
 
-        <!-- VIEW PENILAI -->
         <div id="penilaiView" class="hidden-section space-y-6">
             <select id="penilaiClassFilter" onchange="handleClass(this.value)" class="w-full bg-black border border-white/10 rounded-xl p-4 text-cyan-400 font-bold outline-none uppercase italic">
-                <option value="">-- PILIH KELAS ANDA --</option>
+                <option value="">-- PILIH KELAS SEKTOR --</option>
             </select>
             <div id="studentList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- VIEW ADMIN (RUMUSAN) -->
         <div id="adminView" class="space-y-6">
             <div class="glass-card p-6 text-white">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-3xl impact text-cyan-400 uppercase">Dashboard Rumusan</h2>
+                    <h2 class="text-3xl impact text-cyan-400 uppercase italic">Dashboard Rumusan</h2>
                     <div class="flex flex-wrap items-center gap-2">
                         <select id="adminClassFilter" onchange="handleClass(this.value)" class="bg-black border border-white/10 rounded-lg px-4 py-2 text-xs font-bold text-white outline-none">
                             <option value="">-- SEMUA KELAS --</option>
@@ -81,11 +84,11 @@
                         <thead class="border-b border-white/10 text-white/40 font-bold italic uppercase">
                             <tr>
                                 <th class="p-4">Nama Pelajar</th>
-                                <th class="text-center">Purata Larian</th>
-                                <th class="text-center">Purata Lontaran</th>
+                                <th class="text-center">Avg Larian</th>
+                                <th class="text-center">Avg Lontar</th>
                                 <th class="text-center bg-cyan-900/30 text-cyan-400">JUMLAH HP3 (50)</th>
-                                <th class="text-center">Rumusan Penilai</th>
-                                <th class="text-right">Tahap Pencapaian</th>
+                                <th class="text-center">AI Analysis</th>
+                                <th class="text-right">Tahap</th>
                             </tr>
                         </thead>
                         <tbody id="adminTableBody" class="divide-y divide-white/5"></tbody>
@@ -103,6 +106,10 @@
                     <img id="modalStudentImg" src="" class="w-full aspect-[3/4] bg-white/5 border border-white/10 rounded-lg object-cover mb-4 shadow-2xl">
                     <div id="liveGradeDisplay" class="text-xl font-bold impact italic text-cyan-400 uppercase">TAHAP: -</div>
                     <button onclick="openRubrik()" class="mt-6 w-full py-2 bg-white/10 border border-white/20 rounded-lg text-[10px] font-bold uppercase hover:bg-cyan-400 hover:text-black transition-all">📖 Lihat Rubrik HP3</button>
+                    <div class="flex gap-2 w-full mt-2">
+                        <button onclick="openChecklist('pecut')" class="flex-1 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-[9px] font-bold text-cyan-400 uppercase hover:bg-cyan-500 hover:text-black transition-all">✅ Semak Larian</button>
+                        <button onclick="openChecklist('lontar')" class="flex-1 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[9px] font-bold text-purple-400 uppercase hover:bg-purple-500 hover:text-black transition-all">✅ Semak Lontaran</button>
+                    </div>
                 </div>
                 <div class="md:col-span-8">
                     <div class="flex justify-between items-start mb-6 border-b border-white/10 pb-4">
@@ -131,16 +138,41 @@
         </div>
     </div>
 
+    <!-- MODAL SENARAI SEMAK UNIVERSAL -->
+    <div id="checklistModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+        <div class="glass-card w-full max-w-2xl max-h-[90vh] flex flex-col border-white/20 overflow-hidden">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <div>
+                    <h2 id="checklistTitle" class="text-3xl impact text-white tracking-widest uppercase">Senarai Semak Amali</h2>
+                    <p class="text-[10px] text-accent font-bold uppercase italic">Tanda kriteria teknikal yang dipenuhi</p>
+                </div>
+                <button onclick="closeChecklist()" class="text-white text-3xl hover:text-accent">×</button>
+            </div>
+            
+            <div id="checklistContent" class="p-6 overflow-y-auto space-y-6">
+                <!-- Content injected via JS -->
+            </div>
+
+            <div class="p-6 bg-white/5 border-t border-white/10 flex justify-between items-center">
+                <div class="text-white">
+                    <span class="text-[10px] uppercase opacity-50 block">Markah Terkumpul:</span>
+                    <span id="checklistScore" class="text-3xl impact text-accent">0.00</span> <span class="text-lg text-accent opacity-50">/ 25</span>
+                </div>
+                <button onclick="applyChecklistMark()" class="bg-cyan-500 text-black px-8 py-3 rounded-xl font-bold uppercase impact text-xl hover:bg-white transition-all">Guna Markah Ini</button>
+            </div>
+        </div>
+    </div>
+
     <!-- POPUP RUBRIK -->
     <div id="rubrikPopup" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
         <div class="glass-card w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col border-white/20">
             <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                <h2 class="text-3xl impact text-white tracking-widest uppercase">Rujukan Rubrik HP3 (25%)</h2>
+                <h2 class="text-3xl impact text-white tracking-widest uppercase italic">Rujukan Rubrik HP3 (25%)</h2>
                 <button onclick="closeRubrik()" class="text-white text-3xl hover:text-cyan-400">×</button>
             </div>
             <div class="flex bg-white/5 border-b border-white/10">
-                <button id="tabLarian" onclick="switchTab('larian')" class="rubrik-tab active flex-1 py-4 font-bold text-xs uppercase">Lari Pecut (Balapan)</button>
-                <button id="tabLontar" onclick="switchTab('lontar')" class="rubrik-tab flex-1 py-4 font-bold text-xs uppercase">Lontar Peluru (Padang)</button>
+                <button id="tabLarian" onclick="switchTab('larian')" class="rubrik-tab active flex-1 py-4 font-bold text-xs uppercase">Lari Pecut</button>
+                <button id="tabLontar" onclick="switchTab('lontar')" class="rubrik-tab flex-1 py-4 font-bold text-xs uppercase">Lontar Peluru</button>
             </div>
             <div class="p-6 overflow-y-auto text-[11px] leading-relaxed">
                 <div class="grid grid-cols-5 gap-2 mb-6">
@@ -155,7 +187,6 @@
                     <ul id="rubrikList" class="list-disc ml-5 space-y-3 text-white/80"></ul>
                 </div>
             </div>
-            <div class="p-4 bg-white/5 border-t border-white/10 text-center text-[9px] text-white/40 italic uppercase">Sumber: Rubrik Pemarkahan Kokurikulum Olahraga</div>
         </div>
     </div>
 
@@ -165,35 +196,79 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbzVzaPdACxnvKJDRG5cqKDZBhLu6V8z3g3N4MT55scDGIAgU-r3ekjMAt_Zj4x8O75lBg/exec";
         const PLACEHOLDER_IMG = "https://via.placeholder.com/150x200?text=HP3+STUDENT";
         
-        let students = [], liveMarks = {}, selectedClass = "", currentRole = "Admin", activeId = null;
+        let students = [], liveMarks = {}, selectedClass = "", currentRole = "Admin", activeId = null, currentChecklistType = "";
 
         const val = (v) => { let n = parseFloat(v); return isNaN(n) ? 0 : n; };
+        
+        // Membaiki pautan imej Google Drive agar boleh dipaparkan
+        function checkImageURL(url) {
+            if (!url || url.length < 10) return PLACEHOLDER_IMG;
+            if (url.includes('drive.google.com')) {
+                const idMatch = url.match(/[-\w]{25,}/);
+                if (idMatch) return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
+            }
+            return url;
+        }
+
         const fasaPecut = [{n:"Persediaan", w:12/25, m:12, c:"text-emerald-400"}, {n:"Sedia/Mula", w:8/25, m:8, c:"text-amber-400"}, {n:"Penamat", w:5/25, m:5, c:"text-red-400"}];
         const fasaLontar = [{n:"Sedia", w:12/25, m:12, c:"text-emerald-400"}, {n:"Lungsur", w:8/25, m:8, c:"text-amber-400"}, {n:"Lontar", w:3/25, m:3, c:"text-blue-400"}, {n:"Pulihan", w:2/25, m:2, c:"text-red-400"}];
 
+        const checklists = {
+            pecut: [
+                { fasa: "Persediaan", items: [
+                    { text: "Pemasangan blok permulaan dengan teknik betul tanpa bantuan.", val: 1.5 },
+                    { text: "Melangkah pantas ke garisan setelah isyarat diberikan.", val: 1.5 },
+                    { text: "Posisi dekam & tangan dibuka seluas bahu di belakang garisan.", val: 1.5 },
+                    { text: "Bahu selari dengan garisan dengan tepat.", val: 1.5 }
+                ]},
+                { fasa: "Sedia", items: [
+                    { text: "Punggung tinggi daripada aras kepala.", val: 1.5 },
+                    { text: "Berat badan dibawa ke hadapan.", val: 1.5 },
+                    { text: "Bahu melepasi garisan & kepala tunduk relaks.", val: 1.5 },
+                    { text: "Kedua-dua kaki bersudut kemas di blok.", val: 1.5 }
+                ]},
+                { fasa: "Mula", items: [
+                    { text: "Masa tindak balas pantas selepas isyarat.", val: 1.75 },
+                    { text: "Tolakan kaki ke blok secara maksimum (tidak melonjak).", val: 1.75 },
+                    { text: "Koordinasi tangan & kaki betul (hayunan silang).", val: 1.75 },
+                    { text: "Ayunan tangan maksimum mengikut fasa pecutan.", val: 1.75 }
+                ]},
+                { fasa: "Penamat", items: [
+                    { text: "Melintasi garisan dengan didahului bahagian Torso.", val: 2.0 },
+                    { text: "Membuat 'Dipping' (tangan diayun ke belakang secara tekal).", val: 2.0 },
+                    { text: "Mengekalkan kepantasan & imbangan melepasi garisan.", val: 2.0 }
+                ]}
+            ],
+            lontar: [
+                { fasa: "Fasa Persediaan & Sedia", items: [
+                    { text: "Peluru tidak menyentuh tapak tangan (pangkal 3/5 jari).", val: 1.5 },
+                    { text: "Kedudukan peluru menyentuh sisi leher bawah telinga.", val: 1.5 },
+                    { text: "Berdiri membelakangkan kawasan lontaran di bahagian belakang bulatan.", val: 1.5 },
+                    { text: "Teknik sedia dilakukan dengan betul dan tepat.", val: 1.5 }
+                ]},
+                { fasa: "Fasa Lungsur", items: [
+                    { text: "Lungsurkan kedua belah kaki ke belakang supaya kaki serentak.", val: 1.5 },
+                    { text: "Kedua-dua kaki kekal berada di dalam bulatan semasa lungsur.", val: 1.5 },
+                    { text: "Lungsuran dilakukan secara pantas dan licin.", val: 1.5 },
+                    { text: "Teknik lungsuran dilakukan dengan betul dan tepat.", val: 1.5 }
+                ]},
+                { fasa: "Fasa Kilasan & Lontaran", items: [
+                    { text: "Kilasan badan (pinggul pusing kiri & atas).", val: 1.75 },
+                    { text: "Menolak sambil lurus lutut (badan terangkat & melentik).", val: 1.75 },
+                    { text: "Pindahan berat badan dari kaki belakang ke hadapan.", val: 1.75 },
+                    { text: "Peluru dilepaskan pada sudut pelepasan yang optimum.", val: 1.75 }
+                ]},
+                { fasa: "Fasa Pulihan", items: [
+                    { text: "Kaki kanan dibawa ke hadapan selepas pelepasan.", val: 2.0 },
+                    { text: "Lutut dibengkokkan sedikit untuk imbangan stabil.", val: 2.0 },
+                    { text: "Kekal berada di dalam bulatan selepas melontar.", val: 2.0 }
+                ]}
+            ]
+        };
+
         const rubrikData = {
-            larian: {
-                title: "KRITERIA UTAMA LARIAN PECUT:",
-                color: "text-cyan-400", border: "border-cyan-400/30",
-                list: [
-                    "<b>Persediaan:</b> Pemasangan blok permulaan dengan teknik betul tanpa bantuan.",
-                    "<b>Ke Garisan:</b> Melangkah pantas ke garisan, posisi dekam, tangan seluas bahu & selari garisan.",
-                    "<b>Sedia:</b> Punggung lebih tinggi dari aras kepala, berat badan ke hadapan, bahu melepasi garisan.",
-                    "<b>Mula:</b> Masa tindak balas amat pantas, tolakan kaki maksimum di blok & koordinasi betul.",
-                    "<b>Penamat:</b> Melintasi garisan dengan torso, membuat dipping tepat & kekal imbangan."
-                ]
-            },
-            lontar: {
-                title: "KRITERIA UTAMA LONTAR PELURU:",
-                color: "text-purple-400", border: "border-purple-400/30",
-                list: [
-                    "<b>Teknik Pegangan:</b> Peluru tidak menyentuh tapak tangan, dipegang pada pangkal jari.",
-                    "<b>Teknik Sedia:</b> Peluru di sisi leher bawah telinga, berdiri membelakangkan kawasan lontaran.",
-                    "<b>Lungsuran:</b> Kaki serentak ke belakang, dilakukan pantas, licin & kedua kaki dalam bulatan.",
-                    "<b>Lontaran:</b> Kilasan badan (pinggul ke kiri), menolak sambil luruskan lutut (melentik).",
-                    "<b>Pulihan:</b> Kaki kanan dibawa ke hadapan, lutut dibengkokkan sedikit untuk imbangan."
-                ]
-            }
+            larian: { title: "KRITERIA LARIAN PECUT:", color: "text-cyan-400", border: "border-cyan-400/30", list: ["Teknik blok sempurna.","Punggung lebih tinggi dari aras kepala.","Masa tindak balas pantas.","Dipping tepat di garisan."] },
+            lontar: { title: "KRITERIA LONTAR PELURU:", color: "text-purple-400", border: "border-purple-400/30", list: ["Peluru tidak sentuh tapak tangan.","Lungsuran pantas & licin.","Kilasan pinggul agresif.","Pulihan imbangan kaki kanan."] }
         };
 
         async function fetchMarks() {
@@ -202,24 +277,71 @@
                 const data = await res.json();
                 students = data.students || []; liveMarks = data.marks || {};
                 initFilters(); renderView();
-            } catch (e) { console.error(e); }
+            } catch (e) { alert("SILA PERIKSA HUBUNGAN INTERNET!"); }
         }
 
         function initFilters() {
             const classes = [...new Set(students.map(s => s.class))].filter(c => c).sort();
             const options = '<option value="">-- PILIH KELAS --</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('penilaiClassFilter').innerHTML = options;
-            document.getElementById('adminClassFilter').innerHTML = options;
+            if(document.getElementById('penilaiClassFilter')) document.getElementById('penilaiClassFilter').innerHTML = options;
+            if(document.getElementById('adminClassFilter')) document.getElementById('adminClassFilter').innerHTML = options;
         }
 
         window.handleClass = (v) => { selectedClass = v; renderStudentList(); renderAdminTable(); }
 
         window.autoAlgo = () => {
             const pVal = val(document.getElementById('numPecut').value), lVal = val(document.getElementById('numLontar').value);
-            const r = (id, v, fasa) => { document.getElementById(id).innerHTML = fasa.map(x => `<div class="bg-white/5 p-2 rounded text-center border border-white/5"><div class="text-[7px] text-white/40 uppercase font-bold">${x.n}</div><div class="text-[10px] font-bold ${x.c}">${(v * x.w).toFixed(1)}/${x.m}</div></div>`).join(''); };
+            const r = (id, v, f) => { 
+                const element = document.getElementById(id);
+                if (element) {
+                    element.innerHTML = f.map(x => `<div class="bg-white/5 p-2 rounded text-center border border-white/5"><div class="text-[7px] text-white/40 uppercase font-bold">${x.n}</div><div class="text-[10px] font-bold ${x.c}">${(v * x.w).toFixed(1)}/${x.m}</div></div>`).join(''); 
+                }
+            };
             r('detPecut', pVal, fasaPecut); r('detLontar', lVal, fasaLontar);
             document.getElementById('liveGradeDisplay').innerText = `TAHAP: ${getCategory(pVal + lVal).label}`;
             document.getElementById('liveGradeDisplay').style.color = getCategory(pVal + lVal).color;
+        }
+
+        // CHECKLIST LOGIC
+        window.openChecklist = (type) => {
+            currentChecklistType = type;
+            document.getElementById('checklistTitle').innerText = `Senarai Semak ${type === 'pecut' ? 'Larian Pecut' : 'Lontar Peluru'}`;
+            document.getElementById('checklistScore').innerText = "0.00";
+            
+            const content = document.getElementById('checklistContent');
+            content.innerHTML = checklists[type].map(section => `
+                <div>
+                    <h4 class="text-xs font-bold text-white/40 uppercase mb-3 border-l-2 border-accent pl-2">${section.fasa}</h4>
+                    <div class="space-y-2">
+                        ${section.items.map(item => `
+                            <div class="check-item" data-val="${item.val}" onclick="toggleCheck(this)">
+                                <div class="check-mark"></div>
+                                <div class="text-[11px]">${item.text}</div>
+                                <div class="ml-auto text-[8px] opacity-30">${item.val}M</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('checklistModal').classList.remove('hidden');
+        }
+
+        window.closeChecklist = () => document.getElementById('checklistModal').classList.add('hidden');
+
+        window.toggleCheck = (el) => {
+            el.classList.toggle('active');
+            let total = 0;
+            document.querySelectorAll('.check-item.active').forEach(item => total += parseFloat(item.dataset.val));
+            document.getElementById('checklistScore').innerText = Math.min(25, total).toFixed(2);
+        }
+
+        window.applyChecklistMark = () => {
+            const score = document.getElementById('checklistScore').innerText;
+            if(currentChecklistType === 'pecut') document.getElementById('numPecut').value = score;
+            else document.getElementById('numLontar').value = score;
+            autoAlgo();
+            closeChecklist();
         }
 
         function getCategory(v) { let n = val(v); if (n >= 46) return { label: 'AMAT CEMERLANG', color: '#00f2ff' }; if (n >= 38) return { label: 'CEMERLANG', color: '#10b981' }; if (n >= 30) return { label: 'KEPUJIAN', color: '#a855f7' }; return { label: 'LEMAH', color: '#ef4444' }; }
@@ -239,7 +361,8 @@
 
         async function preparePrintReport() {
             const btn = document.getElementById('btnPrintPDF');
-            btn.innerText = "SEDANG MEMUAT..."; btn.disabled = true;
+            btn.innerText = "MENYEDIAKAN PDF..."; btn.disabled = true;
+            
             const container = document.getElementById('printArea');
             const filtered = students.filter(s => !selectedClass || s.class === selectedClass);
             let html = "";
@@ -247,37 +370,50 @@
                 html += `<div class="report-page">`;
                 for (let j = i; j < i + 2 && j < filtered.length; j++) {
                     const s = filtered[j], m = liveMarks[s.id] || {};
-                    const ap = ((val(m["Penilai 1"]?.pecut) + val(m["Penilai 2"]?.pecut)) / 2).toFixed(2);
-                    const al = ((val(m["Penilai 1"]?.lontar) + val(m["Penilai 2"]?.lontar)) / 2).toFixed(2);
-                    const pic = (s.image && s.image.length > 10) ? s.image : PLACEHOLDER_IMG;
+                    const p1 = m["Penilai 1"] || {pecut:0, lontar:0}, p2 = m["Penilai 2"] || {pecut:0, lontar:0};
+                    const ap = ((val(p1.pecut) + val(p2.pecut)) / 2).toFixed(2);
+                    const al = ((val(p1.lontar) + val(p2.lontar)) / 2).toFixed(2);
+                    const totalSc = (parseFloat(ap) + parseFloat(al)).toFixed(2);
+                    const pic = checkImageURL(s.image);
                     
                     html += `<div class="student-row-pdf">
                         <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <div>
-                                <h3 style="margin:0; font-size:22px; text-decoration:underline; color:black;">LAPORAN PENTAKSIRAN HP3</h3>
-                                <p style="margin:8px 0; color:black; font-size:12px;"><b>NAMA:</b> ${s.name}<br><b>KELAS:</b> ${s.class} | <b>ID:</b> ${s.id}</p>
-                            </div>
+                            <div><h3 style="margin:0; font-size:20px; text-decoration:underline; color:black;">LAPORAN PENTAKSIRAN HP3</h3><p style="margin:5px 0; color:black; font-size:11px;"><b>NAMA:</b> ${s.name}<br><b>KELAS:</b> ${s.class} | <b>ID:</b> ${s.id}</p></div>
                             <img src="${pic}" class="student-img-pdf report-image" onerror="this.src='${PLACEHOLDER_IMG}'">
                         </div>
-                        <table style="color:black; border-color:black;">
-                            <tr style="background:#eee"><th>ACARA OLAHRAGA</th><th>SKOR (25M)</th></tr>
-                            <tr><td>PURATA LARIAN PECUT</td><td>${ap}</td></tr>
-                            <tr><td>PURATA LONTAR PELURU</td><td>${al}</td></tr>
-                            <tr style="background:#f0f0f0; font-weight:bold;"><td>JUMLAH KESELURUHAN HP3 (50M)</td><td>${(parseFloat(ap)+parseFloat(al)).toFixed(2)}</td></tr>
+                        <table style="color:black; border-color:black; margin-top:5px;">
+                            <tr style="background:#eee">
+                                <th>ACARA OLAHRAGA</th>
+                                <th>P1 (25M)</th>
+                                <th>P2 (25M)</th>
+                                <th>PURATA (25M)</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left;">LARIAN PECUT</td>
+                                <td>${val(p1.pecut).toFixed(2)}</td>
+                                <td>${val(p2.pecut).toFixed(2)}</td>
+                                <td style="font-weight:bold; background:#f9f9f9;">${ap}</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left;">LONTAR PELURU</td>
+                                <td>${val(p1.lontar).toFixed(2)}</td>
+                                <td>${val(p2.lontar).toFixed(2)}</td>
+                                <td style="font-weight:bold; background:#f9f9f9;">${al}</td>
+                            </tr>
+                            <tr style="background:#f0f0f0; font-weight:bold;">
+                                <td colspan="3" style="text-align:right;">JUMLAH GABUNGAN HP3 (50M)</td>
+                                <td style="font-size:14px; color:blue;">${totalSc}</td>
+                            </tr>
                         </table>
-                        <div style="padding:8px; border-left:4px solid #00f2ff; background:#f4f4f4; margin-top:5px; font-size:10px; color:black; min-height:40px;">
-                            <b>ULASAN PENGUJI:</b><br><i>${m.aiReport || ""}</i>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
-                            <div style="text-align:center;">
-                                <p style="font-size:8px; font-weight:bold; margin-bottom:5px;">TANDATANGAN PENGUJI 1</p>
-                                <div style="height:45px; border-bottom:1px solid #000; width:80%; margin: 0 auto;"></div>
-                                <p style="font-size:8px; margin-top:3px;">( PENGUJI 1 )</p>
+                        <div style="padding:5px; border:1px solid #ddd; background:#f4f4f4; margin-top:5px; font-size:10px; color:black; min-height:30px;"><b>ULASAN PENGUJI:</b><br><i>${m.aiReport || "Tiada ulasan dijana."}</i></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:10px; text-align:center; color:black; font-size:9px;">
+                            <div style="flex:1;">
+                                <div style="border-bottom:1px solid black; width:120px; margin:25px auto 5px;"></div>
+                                PENGESAHAN PENGUJI 1
                             </div>
-                            <div style="text-align:center;">
-                                <p style="font-size:8px; font-weight:bold; margin-bottom:5px;">TANDATANGAN PENGUJI 2</p>
-                                <div style="height:45px; border-bottom:1px solid #000; width:80%; margin: 0 auto;"></div>
-                                <p style="font-size:8px; margin-top:3px;">( PENGUJI 2 )</p>
+                            <div style="flex:1;">
+                                <div style="border-bottom:1px solid black; width:120px; margin:25px auto 5px;"></div>
+                                PENGESAHAN PENGUJI 2
                             </div>
                         </div>
                     </div>`;
@@ -285,22 +421,28 @@
                 html += `</div>`;
             }
             container.innerHTML = html;
-            const imgs = container.querySelectorAll('.report-image');
-            const promises = Array.from(imgs).map(img => new Promise((resolve) => { if (img.complete) resolve(); else { img.onload = resolve; img.onerror = resolve; } }));
-            await Promise.all(promises);
-            setTimeout(() => { window.print(); btn.innerText = "Cetak PDF (2/Page)"; btn.disabled = false; }, 500);
+            
+            // Tunggu semua gambar selesai dimuatkan sebelum cetak
+            const imgs = Array.from(container.querySelectorAll('.report-image'));
+            const loadPromises = imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            });
+            
+            await Promise.all(loadPromises);
+            
+            setTimeout(() => {
+                window.print();
+                btn.innerText = "Cetak PDF (2/Page)";
+                btn.disabled = false;
+            }, 1000);
         }
 
         window.cetakBorangManual = (tajuk) => {
             if(!selectedClass) { alert("Pilih kelas dahulu!"); return; }
             const container = document.getElementById('printArea');
             const filtered = students.filter(s => s.class === selectedClass);
-            let html = `<div class="borang-container">
-                <h1 style="text-align:center; text-decoration:underline; font-size:22px; margin-bottom:5px;">BORANG MARKAH MANUAL AMALI HP3</h1>
-                <h2 style="text-align:center; font-size:18px; margin-bottom:20px; text-transform:uppercase;">ACARA: ${tajuk}</h2>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:15px; font-size:12px;"><span>KELAS: ${selectedClass}</span><span>TARIKH: _______________</span></div>
-                <div class="grid-borang">${filtered.map(s => `<div class="petak-pelajar"><div class="b-nama">${s.name}</div><div class="b-markah"></div></div>`).join('')}</div>
-            </div>`;
+            let html = `<div class="borang-container"><h1 style="text-align:center; text-decoration:underline; font-size:22px;">BORANG MANUAL - ${tajuk}</h1><div class="grid-borang">${filtered.map(s => `<div class="petak-pelajar"><div class="b-nama">${s.name}</div><div class="b-markah"></div></div>`).join('')}</div></div>`;
             container.innerHTML = html; window.print();
         }
 
@@ -328,7 +470,7 @@
             if(t==='larian') { tabL.className="rubrik-tab active flex-1 py-4 font-bold text-xs uppercase"; tabO.className="rubrik-tab flex-1 py-4 font-bold text-xs uppercase"; }
             else { tabO.className="rubrik-tab lontar-active flex-1 py-4 font-bold text-xs uppercase"; tabL.className="rubrik-tab flex-1 py-4 font-bold text-xs uppercase"; }
         };
-        window.openScoring = (id) => { activeId = id; const s = students.find(x => x.id === id); if(!s) return; document.getElementById('modalStudentName').innerText = s.name; const pic = (s.image && s.image.length > 10) ? s.image : PLACEHOLDER_IMG; document.getElementById('modalStudentImg').src = pic; const m = (liveMarks[id] && liveMarks[id][currentRole]) || { pecut: 0, lontar: 0 }; document.getElementById('numPecut').value = m.pecut; document.getElementById('numLontar').value = m.lontar; autoAlgo(); document.getElementById('scoringModal').classList.remove('hidden'); }
+        window.openScoring = (id) => { activeId = id; const s = students.find(x => x.id === id); if(!s) return; document.getElementById('modalStudentName').innerText = s.name; const pic = checkImageURL(s.image); document.getElementById('modalStudentImg').src = pic; const m = (liveMarks[id] && liveMarks[id][currentRole]) || { pecut: 0, lontar: 0 }; document.getElementById('numPecut').value = m.pecut; document.getElementById('numLontar').value = m.lontar; autoAlgo(); document.getElementById('scoringModal').classList.remove('hidden'); }
         window.saveData = async () => { const p = val(document.getElementById('numPecut').value), l = val(document.getElementById('numLontar').value); const btn = document.querySelector("#scoringModal button#btnSave"); btn.innerText = "MENYIMPAN..."; btn.disabled = true; try { await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: "SAVE_MARKS", id: activeId, role: currentRole, pecut: p, lontar: l }) }); document.getElementById('scoringModal').classList.add('hidden'); fetchMarks(); } finally { btn.innerText = "Simpan Markah Automatik"; btn.disabled = false; } }
         window.closeModal = () => document.getElementById('scoringModal').classList.add('hidden');
         window.onload = fetchMarks;
